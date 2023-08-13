@@ -33,6 +33,16 @@ class DatabaseHandler {
   Future<NotesModel> insert(NotesModel notesModel) async {
     var dbClient = await db;
     await dbClient!.insert("notes", notesModel.toMap());
+
     return notesModel;
+  }
+
+  Future<List<NotesModel>> getNotesList() async {
+    var dbClient = await db;
+
+    final List<Map<String, dynamic>> queryResult = await dbClient!.query("notes");
+    List<NotesModel> notesList = queryResult.map((e) => NotesModel.fromMap(e)).toList();
+
+    return notesList.reversed.toList();
   }
 }

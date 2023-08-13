@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sqflite/database_handler.dart';
+import 'package:flutter_sqflite/notes_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -8,6 +10,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  DatabaseHandler? dbHandler = DatabaseHandler();
+  late Future<List<NotesModel>> notesList;
+
+  @override
+  void initState() {
+    loadNotesData();
+    super.initState();
+  }
+
+  loadNotesData() async {
+    notesList = dbHandler!.getNotesList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,8 +30,45 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         title: const Text("Notes SQL"),
       ),
-      body: ListView(
-        children: const [],
+      body: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder(
+                future: notesList,
+                builder: (BuildContext context, AsyncSnapshot<List<NotesModel>> snapshot) {
+                  return ListView.builder(
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(snapshot.data![index].title),
+                            subtitle: Text(snapshot.data![index].description),
+                            trailing: Text(snapshot.data![index].age.toString()),
+                          ),
+                        );
+                      });
+                }),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          dbHandler!
+              .insert(NotesModel(
+            title: "Third Note",
+            age: 22,
+            description: "This is third SQFLite note",
+            email: "sonia@gmail.com",
+          ))
+              .then((value) {
+            setState(() {
+              notesList = dbHandler!.getNotesList();
+            });
+          }).onError((error, stackTrace) {
+            debugPrintStack(stackTrace: stackTrace);
+          });
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
