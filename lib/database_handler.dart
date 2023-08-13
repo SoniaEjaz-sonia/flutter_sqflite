@@ -45,4 +45,14 @@ class DatabaseHandler {
 
     return notesList.reversed.toList();
   }
+
+  Future<int> delete(int id) async {
+    var dbClient = await db;
+
+    return await dbClient!.delete(
+      "notes",
+      where: "id = ?",
+      whereArgs: [id],
+    );
+  }
 }
