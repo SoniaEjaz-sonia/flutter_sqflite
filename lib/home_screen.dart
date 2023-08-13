@@ -41,26 +41,43 @@ class _HomeScreenState extends State<HomeScreen> {
                     return ListView.builder(
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
-                          return Dismissible(
-                            key: ValueKey<int>(snapshot.data![index].id!),
-                            direction: DismissDirection.endToStart,
-                            onDismissed: (DismissDirection direction) async {
-                              await dbHandler!.delete(snapshot.data![index].id!);
+                          return InkWell(
+                            onTap: () {
+                              dbHandler!.update(
+                                NotesModel(
+                                  id: snapshot.data![index].id!,
+                                  title: "Fourth Note",
+                                  age: 22,
+                                  description: "This is fourth SQFLite note",
+                                  email: "sonia@gmail.com",
+                                ),
+                              );
 
                               setState(() {
                                 notesList = dbHandler!.getNotesList();
-                                snapshot.data!.remove(snapshot.data![index]);
                               });
                             },
-                            background: Container(
-                              color: Colors.redAccent,
-                              child: const Icon(Icons.delete_forever),
-                            ),
-                            child: Card(
-                              child: ListTile(
-                                title: Text(snapshot.data![index].title),
-                                subtitle: Text(snapshot.data![index].description),
-                                trailing: Text(snapshot.data![index].age.toString()),
+                            child: Dismissible(
+                              key: ValueKey<int>(snapshot.data![index].id!),
+                              direction: DismissDirection.endToStart,
+                              onDismissed: (DismissDirection direction) async {
+                                await dbHandler!.delete(snapshot.data![index].id!);
+
+                                setState(() {
+                                  notesList = dbHandler!.getNotesList();
+                                  snapshot.data!.remove(snapshot.data![index]);
+                                });
+                              },
+                              background: Container(
+                                color: Colors.redAccent,
+                                child: const Icon(Icons.delete_forever),
+                              ),
+                              child: Card(
+                                child: ListTile(
+                                  title: Text(snapshot.data![index].title),
+                                  subtitle: Text(snapshot.data![index].description),
+                                  trailing: Text(snapshot.data![index].age.toString()),
+                                ),
                               ),
                             ),
                           );
@@ -91,9 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           dbHandler!
               .insert(NotesModel(
-            title: "Third Note",
+            title: "Lorem Ipsum",
             age: 22,
-            description: "This is third SQFLite note",
+            description:
+                "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...",
             email: "sonia@gmail.com",
           ))
               .then((value) {
