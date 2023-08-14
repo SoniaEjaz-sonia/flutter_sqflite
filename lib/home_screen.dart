@@ -42,21 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
                           return InkWell(
-                            onTap: () {
-                              dbHandler!.update(
-                                NotesModel(
-                                  id: snapshot.data![index].id!,
-                                  title: "Fourth Note",
-                                  age: 22,
-                                  description: "This is fourth SQFLite note",
-                                  email: "sonia@gmail.com",
-                                ),
-                              );
-
-                              setState(() {
-                                notesList = dbHandler!.getNotesList();
-                              });
-                            },
+                            onTap: () {},
                             child: Dismissible(
                               key: ValueKey<int>(snapshot.data![index].id!),
                               direction: DismissDirection.endToStart,
@@ -70,13 +56,92 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               background: Container(
                                 color: Colors.redAccent,
-                                child: const Icon(Icons.delete_forever),
+                                child: const Icon(
+                                  Icons.delete_forever,
+                                  color: Colors.white,
+                                ),
                               ),
                               child: Card(
                                 child: ListTile(
+                                  contentPadding: const EdgeInsets.only(left: 15),
                                   title: Text(snapshot.data![index].title),
                                   subtitle: Text(snapshot.data![index].description),
-                                  trailing: Text(snapshot.data![index].age.toString()),
+                                  trailing: IconButton(
+                                      onPressed: () {
+                                        TextEditingController nameController =
+                                            TextEditingController(text: snapshot.data![index].title);
+                                        TextEditingController descController =
+                                            TextEditingController(text: snapshot.data![index].description);
+
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text("Add Note"),
+                                                content: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    TextFormField(
+                                                      controller: nameController,
+                                                      decoration: const InputDecoration(labelText: "Name"),
+                                                    ),
+                                                    const SizedBox(height: 30),
+                                                    TextFormField(
+                                                      controller: descController,
+                                                      decoration:
+                                                          const InputDecoration(labelText: "Description"),
+                                                    ),
+                                                  ],
+                                                ),
+                                                actionsAlignment: MainAxisAlignment.center,
+                                                actions: [
+                                                  ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: Colors.redAccent,
+                                                      minimumSize: const Size(100, 40),
+                                                    ),
+                                                    onPressed: () => Navigator.pop(context),
+                                                    child: const Text(
+                                                      "Cancel",
+                                                      style: TextStyle(color: Colors.white),
+                                                    ),
+                                                  ),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: Colors.deepPurpleAccent,
+                                                      minimumSize: const Size(100, 40),
+                                                    ),
+                                                    onPressed: () {
+                                                      dbHandler!
+                                                          .update(
+                                                            NotesModel(
+                                                              id: snapshot.data![index].id!,
+                                                              title: nameController.text,
+                                                              age: 22,
+                                                              description: descController.text,
+                                                              email: "sonia@gmail.com",
+                                                            ),
+                                                          )
+                                                          .then((value) => setState(() {
+                                                                notesList = dbHandler!.getNotesList();
+                                                              }))
+                                                          .onError((error, stackTrace) =>
+                                                              debugPrintStack(stackTrace: stackTrace));
+
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: const Text(
+                                                      "Add",
+                                                      style: TextStyle(color: Colors.white),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            });
+                                      },
+                                      icon: const Icon(
+                                        Icons.edit_note,
+                                      )),
                                 ),
                               ),
                             ),
@@ -106,21 +171,72 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          dbHandler!
-              .insert(NotesModel(
-            title: "Lorem Ipsum",
-            age: 22,
-            description:
-                "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...",
-            email: "sonia@gmail.com",
-          ))
-              .then((value) {
-            setState(() {
-              notesList = dbHandler!.getNotesList();
-            });
-          }).onError((error, stackTrace) {
-            debugPrintStack(stackTrace: stackTrace);
-          });
+          TextEditingController nameController = TextEditingController();
+          TextEditingController descController = TextEditingController();
+
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text("Add Note"),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(labelText: "Name"),
+                      ),
+                      const SizedBox(height: 30),
+                      TextFormField(
+                        controller: descController,
+                        decoration: const InputDecoration(labelText: "Description"),
+                      ),
+                    ],
+                  ),
+                  actionsAlignment: MainAxisAlignment.center,
+                  actions: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        minimumSize: const Size(100, 40),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurpleAccent,
+                        minimumSize: const Size(100, 40),
+                      ),
+                      onPressed: () {
+                        dbHandler!
+                            .insert(NotesModel(
+                          title: nameController.text,
+                          age: 22,
+                          description: descController.text,
+                          email: "sonia@gmail.com",
+                        ))
+                            .then((value) {
+                          setState(() {
+                            notesList = dbHandler!.getNotesList();
+                          });
+                        }).onError((error, stackTrace) {
+                          debugPrintStack(stackTrace: stackTrace);
+                        });
+
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        "Add",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                );
+              });
         },
         child: const Icon(Icons.add),
       ),
